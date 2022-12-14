@@ -9,12 +9,11 @@ export type UserParams = {
 
 export default class User {
   private db;
-  private disconnect;
 
   constructor(db: Database) {
     this.db = db.getInstance();
-    this.disconnect = () => db.disconnect();
-    this.db.query<ResultSetHeader>(
+
+    this.db?.query<ResultSetHeader>(
       `CREATE TABLE IF NOT EXISTS users (
     id int NOT NULL AUTO_INCREMENT,
     PRIMARY KEY (\`id\`),
@@ -25,26 +24,24 @@ export default class User {
     );
   }
 
-  findUser(param: UserParams) {
-    const result = this.db.execute(
+  async findUser(param: UserParams) {
+    if (!this.db) return;
+    const [result] = await this.db?.query(
       `
         SELECT * FROM users WHERE username = '${param.username}' AND password = '${param.password}'
-    `,
-      (err, res) => {
-        if (!err) this.db.emit("get-user", res);
-      }
+    `
     );
-    this.disconnect();
-    return result;
+
+    return result as UserParams[];
   }
 
-  register(param: UserParams) {
-    const result = this.db.query(
+  async register(param: UserParams) {
+    if (!this.db) return;
+    const [result] = await this.db?.query(
       `
         INSERT INTO users (username, password) VALUES ('${param.username}', '${param.password}')
     `
     );
-    this.disconnect();
 
     return result;
   }

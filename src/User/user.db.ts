@@ -68,7 +68,7 @@ export default class UserDB {
     const { username, password, oldPassword } = param;
     const user = await this.findUser({ username, password: oldPassword });
     const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(param.password, salt);
+    const hash = bcrypt.hashSync(password, salt);
 
     if (!user) {
       throw new Error("User doesn't exist");

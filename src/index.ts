@@ -11,12 +11,9 @@ const initDatabase = async () => {
 };
 
 let user: User;
-
-let isLoggedIn = false;
-app.use(bodyParser.json()); // to support JSON-encoded bodies
+app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
-    // to support URL-encoded bodies
     extended: true,
   })
 );
@@ -24,10 +21,22 @@ app.use(
 app.listen("4002", async () => {
   await initDatabase();
   user = new User(db);
-  const res = await user.findUser({
-    username: "admin",
-    password: "12345",
-  });
+});
+
+app.post("/register", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!user) {
+      throw new Error("User class found");
+    }
+
+    const result = await user.register({ username, password });
+    res.json({ result });
+  } catch (err) {
+    res.status(403);
+    res.json({ err });
+  }
 });
 
 app.post<UserParams>("/login", async (req, res) => {
@@ -49,4 +58,36 @@ app.post<UserParams>("/login", async (req, res) => {
     res.status(404);
     res.send({ error: "User doesn't exist" });
   }
+});
+
+app.patch<UserParams & { oldPassword: string }>(
+  "/user/change-password",
+  async (req, res) => {
+    if (!user) {
+      throw new Error("User class found");
+    }
+
+    const { username, password, oldPassword } = req.body;
+    try {
+      await user.changePassword({
+        username,
+        password,
+        oldPassword,
+      });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(403);
+      res.json(error);
+    }
+  }
+);
+
+app.delete<{ username: string }>("/user/delete/:username", async (req, res) => {
+  const { username } = req.params;
+
+  if (!user) {
+    throw new Error("User class found");
+  }
+  await user.delete(username);
+  res.json({ success: true });
 });

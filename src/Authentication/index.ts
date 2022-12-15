@@ -63,6 +63,9 @@ export default class Authentication {
   };
 
   refreshToken = (req: Record<string, any>, res: Record<string, any>) => {
+    const oldAccessToken = last(
+      req.headers["authorization"].split(" ")
+    ) as string;
     const { refreshToken, user } = req.body;
 
     if (!this.refreshTokens.includes(refreshToken)) {
@@ -72,6 +75,7 @@ export default class Authentication {
     }
 
     const accessToken = this.generateAccessToken(user);
+    this.blocksAccessTokenList.push(oldAccessToken);
 
     res.json({ accessToken });
   };

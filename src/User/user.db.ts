@@ -7,7 +7,7 @@ export type UserParams = {
   password: string;
 };
 
-export default class User {
+export default class UserDB {
   private db;
 
   constructor(db: Database) {
@@ -35,6 +35,7 @@ export default class User {
     if (!(result as UserParams[]).length) {
       throw new Error("User doesn't exist");
     }
+
     return result as UserParams[];
   }
 

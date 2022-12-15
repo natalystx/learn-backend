@@ -18,7 +18,7 @@ app.use(
   })
 );
 
-app.listen("4002", async () => {
+app.listen(process.env.PORT || "4002", async () => {
   await initDatabase();
   user = new User(db);
 });

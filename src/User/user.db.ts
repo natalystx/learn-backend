@@ -27,7 +27,6 @@ export default class UserDB {
 
   async findUser(param: UserParams) {
     if (!this.db) return;
-    const salt = bcrypt.genSaltSync(10);
 
     const [result] = await this.db?.query(
       `

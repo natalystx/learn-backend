@@ -12,7 +12,7 @@ const initDatabase = async () => {
   await db.connect();
 };
 
-const authentication = new Authentication();
+let authentication: Authentication;
 let user: UserDB;
 let userController!: UserController;
 app.use(bodyParser.json());
@@ -25,6 +25,8 @@ app.use(
 app.listen(process.env.PORT || "4002", async () => {
   await initDatabase();
   user = new UserDB(db);
+  const dbInstance = db.getInstance();
+  authentication = new Authentication(dbInstance);
   userController = new UserController(user!, authentication);
 
   app.post("/register", userController.register);

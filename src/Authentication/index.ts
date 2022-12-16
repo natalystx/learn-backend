@@ -2,10 +2,15 @@ import jwt from "jsonwebtoken";
 import "dotenv";
 import { last } from "lodash";
 import { UserParams } from "../User/user.db";
+import { Connection } from "mysql2/promise";
+import AuthDB from "./auth.db";
 
 export default class Authentication {
-  private refreshTokens: string[] = [];
-  private blocksAccessTokenList: string[] = [];
+  private authDB: AuthDB;
+
+  constructor(db: Connection) {
+    this.authDB = new AuthDB(db);
+  }
 
   generateAccessToken = (user: UserParams) => {
     const accessToken = jwt.sign(
@@ -24,8 +29,7 @@ export default class Authentication {
       user,
       process.env.REFRESH_TOKEN_SECRET as string
     );
-
-    this.refreshTokens.push(refreshToken);
+    this.authDB.storeRefreshToken(refreshToken);
 
     return refreshToken;
   };
@@ -45,7 +49,7 @@ export default class Authentication {
     next: () => void
   ) => {
     const token = last(req.headers["authorization"]?.split(" ")) as string;
-    if (!token || this.blocksAccessTokenList.includes(token)) {
+    if (!token) {
       this.unauthorizedUser(res);
 
       return;
@@ -62,36 +66,32 @@ export default class Authentication {
     );
   };
 
-  refreshToken = (req: Record<string, any>, res: Record<string, any>) => {
-    const oldAccessToken = last(
-      req.headers["authorization"].split(" ")
-    ) as string;
+  refreshToken = async (req: Record<string, any>, res: Record<string, any>) => {
     const { refreshToken, user } = req.body;
+    const hasRefreshTokenInDB = await this.authDB.hasThisRefreshToken(
+      refreshToken
+    );
 
-    if (!this.refreshTokens.includes(refreshToken)) {
+    if (!hasRefreshTokenInDB) {
       res.status(403);
       res.json("Unauthorized");
       return;
     }
 
+    await this.authDB.deleteRefreshToken("refreshToken");
+
     const accessToken = this.generateAccessToken(user);
-    this.blocksAccessTokenList.push(oldAccessToken);
 
     res.json({ accessToken });
   };
 
   signOut = (req: Record<string, any>, res: Record<string, any>) => {
     const { refreshToken } = req.body;
-    const accessToken = last(req.headers["authorization"].split(" ")) as string;
     if (!refreshToken) {
       res.status(403);
       return;
     }
-    this.refreshTokens = this.refreshTokens.filter(
-      (token) => token !== (refreshToken as string)
-    );
-
-    this.blocksAccessTokenList.push(accessToken as string);
+    this.authDB.deleteRefreshToken(refreshToken);
     res.json({ success: true });
   };
 }

@@ -4,6 +4,8 @@ import Database from "./Database";
 import UserDB, { UserParams } from "./User/user.db";
 import Authentication from "./Authentication";
 import UserController from "./User/user.controller";
+import PostController from "./Posts/post.controller";
+import PostDB from "./Posts/posts.db";
 
 const app = express();
 const db = new Database();
@@ -15,6 +17,7 @@ const initDatabase = async () => {
 let authentication: Authentication;
 let user: UserDB;
 let userController!: UserController;
+let postController!: PostController;
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
@@ -28,11 +31,12 @@ app.listen(process.env.PORT || "4002", async () => {
   const dbInstance = db.getInstance();
   authentication = new Authentication(dbInstance);
   userController = new UserController(user!, authentication);
+  postController = new PostController(new PostDB(dbInstance));
 
   app.post("/register", userController.register);
   app.post<UserParams>("/login", userController.login);
   app.post(
-    "/refreshToken",
+    "/refresh-token",
     authentication.authenticate,
     authentication.refreshToken
   );
@@ -46,5 +50,26 @@ app.listen(process.env.PORT || "4002", async () => {
     "/user/delete/:username",
     authentication.authenticate,
     userController.deleteUser
+  );
+  app.post(
+    "/post/create-post",
+    authentication.authenticate,
+    postController.createPost
+  );
+  app.get("/post", authentication.authenticate, postController.getPosts);
+  app.get(
+    "/post/:postId",
+    authentication.authenticate,
+    postController.getPostsById
+  );
+  app.patch(
+    "/post/edit-post",
+    authentication.authenticate,
+    postController.editPost
+  );
+  app.delete(
+    "/post/:postId",
+    authentication.authenticate,
+    postController.deletePostById
   );
 });

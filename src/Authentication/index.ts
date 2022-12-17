@@ -12,9 +12,9 @@ export default class Authentication {
     this.authDB = new AuthDB(db);
   }
 
-  generateAccessToken = (user: UserParams) => {
+  generateAccessToken = (user: Omit<UserParams, "password">) => {
     const accessToken = jwt.sign(
-      user,
+      { id: user.id, username: user.username },
       process.env.ACCESS_TOKEN_SECRET as string,
       {
         expiresIn: "1d",
@@ -24,9 +24,9 @@ export default class Authentication {
     return accessToken;
   };
 
-  generateRefreshToken = (user: UserParams) => {
+  generateRefreshToken = (user: Omit<UserParams, "password">) => {
     const refreshToken = jwt.sign(
-      user,
+      { id: user.id, username: user.username },
       process.env.REFRESH_TOKEN_SECRET as string
     );
     this.authDB.storeRefreshToken(refreshToken);

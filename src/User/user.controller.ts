@@ -19,7 +19,7 @@ export default class UserController {
       });
 
       const userData = first(found);
-      if (userData) {
+      if (userData?.id) {
         res.json({
           accessToken: this.authentication.generateAccessToken(userData),
           refreshToken: this.authentication.generateRefreshToken(userData),

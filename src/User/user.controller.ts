@@ -37,8 +37,8 @@ export default class UserController {
   register = async (req: Record<string, any>, res: Record<string, any>) => {
     try {
       const { username, password } = req.body;
-      const result = await this.userDB.register({ username, password });
-      res.json({ result });
+      await this.userDB.register({ username, password });
+      res.json({ success: true });
     } catch (err) {
       res.status(403);
       res.json({ err });

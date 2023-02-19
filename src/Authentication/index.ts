@@ -86,12 +86,15 @@ export default class Authentication {
   };
 
   signOut = (req: Record<string, any>, res: Record<string, any>) => {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
+    const token = req.header("authorization");
+    console.log(req.header);
+
+    if (!token) {
       res.status(403);
-      return;
+
+      return { err: "Something went wrong" };
     }
-    this.authDB.deleteRefreshToken(refreshToken);
+
     res.json({ success: true });
   };
 }

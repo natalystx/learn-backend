@@ -48,7 +48,7 @@ export default class Authentication {
     res: Record<string, any>,
     next: () => void
   ) => {
-    const token = last(req.headers["authorization"]?.split(" ")) as string;
+    const token = req.headers["authorization"] as string;
     if (!token) {
       this.unauthorizedUser(res);
 

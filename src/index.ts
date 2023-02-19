@@ -6,6 +6,7 @@ import Authentication from "./Authentication";
 import UserController from "./User/user.controller";
 import PostController from "./Posts/post.controller";
 import PostDB from "./Posts/posts.db";
+import cors from "cors";
 
 const app = express();
 const db = new Database();
@@ -19,6 +20,11 @@ let user: UserDB;
 let userController!: UserController;
 let postController!: PostController;
 app.use(bodyParser.json());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 app.use(
   bodyParser.urlencoded({
     extended: true,

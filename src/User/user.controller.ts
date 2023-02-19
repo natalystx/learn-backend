@@ -40,7 +40,6 @@ export default class UserController {
       await this.userDB.register({ username, password });
       res.json({ success: true });
     } catch (err) {
-      res.status(403);
       res.json({ err });
     }
   };
